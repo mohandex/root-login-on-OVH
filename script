@@ -6,10 +6,13 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# Interactively change the root password
-passwd root
+# Prompt for new root password
+echo "⚠️ Please set a new password for the root user:"
+until passwd root; do
+    echo "❌ Passwords didn't match or something went wrong. Try again."
+done
 
-# Replace the entire sshd_config file with custom settings
+# Overwrite sshd_config with custom settings
 cat <<EOF > /etc/ssh/sshd_config
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -137,8 +140,10 @@ Subsystem	sftp	/usr/lib/openssh/sftp-server
 #	ForceCommand cvs server
 EOF
 
-# Remove all config override files from sshd_config.d
+# Remove override files from sshd_config.d
 rm -f /etc/ssh/sshd_config.d/*
 
-# Reload SSH service to apply new settings
+# Reload SSH service
 systemctl reload ssh
+
+echo "✅ SSH configuration updated and service reloaded successfully."
