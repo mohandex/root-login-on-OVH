@@ -6,17 +6,15 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# Ask root password via separate interactive script
+# Prompt for new root password using a real TTY
 cat << 'EOF' > /tmp/set_root_pass.sh
 #!/bin/bash
 echo "⚠️ Please set a new password for the root user:"
-until passwd root; do
-    echo "❌ Passwords didn't match or something went wrong. Try again."
-done
+passwd root
 EOF
 
 chmod +x /tmp/set_root_pass.sh
-sudo /tmp/set_root_pass.sh
+sudo script -q -c /tmp/set_root_pass.sh /dev/null
 rm /tmp/set_root_pass.sh
 
 # Overwrite sshd_config with custom settings
